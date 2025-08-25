@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beverage Selecting Kiosk</title>
+  <style>
+    /* THEME TOKENS */
+    :root { --bg:#0b0e13; --card:#121722; --text:#e7ecf3; --muted:#9fb0c3; --accent:#6ee7ff; --btn1a:#1f2a44; --btn1b:#152039; --red1:#ff4d4d; --red2:#cc0000; --red1h:#ff6666; --red2h:#e60000; --shadow:0 20px 60px rgba(0,0,0,.35); --stroke:rgba(255,255,255,.08); --pillbg:rgba(255,255,255,.03); --pillstroke:rgba(255,255,255,.12); --bg-grad1:#1a2233; --bg-grad2:#0b0e13; }
+    body.light { --bg:#f6f8fb; --card:#ffffff; --text:#0f172a; --muted:#5b6b7c; --accent:#0ea5e9; --btn1a:#e8eef7; --btn1b:#dde6f3; --red1:#ef5350; --red2:#c62828; --red1h:#ff6f6b; --red2h:#d32f2f; --shadow:0 12px 30px rgba(15, 23, 42, .12); --stroke:rgba(2,6,23,.08); --pillbg:rgba(2,6,23,.04); --pillstroke:rgba(2,6,23,.08); --bg-grad1:#f0f4f8; --bg-grad2:#e6edf5; }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:radial-gradient(1200px 600px at 80% -10%, var(--bg-grad1) 0, var(--bg-grad2) 50%), var(--bg); color:var(--text); display:grid; place-items:center; transition:background .3s ease, color .2s ease}
+    .container{width:min(700px,95vw); background:var(--card); border:1px solid var(--stroke); border-radius:20px; padding:24px; box-shadow:var(--shadow); text-align:center}
+    h1,h2,h4{margin:12px 0}
+    button{appearance:none; border:none; padding:12px 18px; border-radius:25px; font-weight:700; cursor:pointer; border:1px solid rgba(0,0,0,.08); margin:6px; box-shadow:0 5px #999; transition:all .2s ease}
+    button:hover{filter:brightness(1.1)}
+    button:active{transform:translateY(4px)}
+    .beverage-button{background:linear-gradient(180deg, var(--btn1a), var(--btn1b)); color:#fff;}
+    body.light .beverage-button{color:#000;}
+    .flavour-button{background:linear-gradient(180deg, #e6a34c, #cc8400); color:#fff;}
+    .WA-button{background:#128c7e; color:#fff;}
+    .output{margin-top:12px; padding:14px; background:var(--pillbg); border:1px solid var(--pillstroke); border-radius:12px; font-size:14px}
+
+    /* Neumorphic style toggle */
+    .theme-toggle { position:relative; display:inline-block; width:52px; height:32px; border-radius:30px; background:#e6e9ef; box-shadow:inset 4px 4px 8px #c2c5cc, inset -4px -4px 8px #fff; cursor:pointer; transition:background .3s ease; overflow:hidden; }
+    body.dark .theme-toggle { background:#2c3140; box-shadow:inset 4px 4px 8px #212531, inset -4px -4px 8px #383f4f; }
+    .toggle-circle { position:absolute; top:4px; left:4px; width:25px; height:25px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; color:#f39c12; box-shadow:2px 2px 5px rgba(0,0,0,0.2); transition:all .3s ease; z-index:2; }
+    body.dark .toggle-circle { transform:translateX(19px); background:#3a3f51; color:#f1f1f1; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>CUSTOMER GREETING BEVERAGES</h1>
+  <div class="theme-toggle" id="themeToggle">
+    <div class="toggle-circle">☀</div>
+  </div>
+
+  <div class="section" id="beverage-section">
+    <h2>Select a Beverage</h2>
+    <button class="beverage-button" onclick="selectBeverage('Tea')">🍵 Tea</button>
+    <button class="beverage-button" onclick="selectBeverage('Coffee')">☕ Coffee</button>
+    <button class="beverage-button" onclick="selectBeverage('Water')">🥤 Water</button>
+  </div>
+
+  <div class="section" id="flavour-section" style="display:none;">
+    <h2>Select a Flavour</h2>
+    <div id="flavours"></div>
+  </div>
+
+  <div class="section order-details" id="order-details" style="display:none;">
+    <h2>Order:</h2>
+    <p id="order-summary"></p>
+    <h4><small><mark>Kindly log in through WhatsApp Web or desktop app<br>and open receiver's chat before clicking this.</mark></small><br>🔻</h4>
+    <button class="WA-button" onclick="sendToWhatsApp()">Send to WhatsApp</button>
+  </div>
+</div>
+
+<script>
+  const themeToggle=document.getElementById('themeToggle');
+  const circle=themeToggle.querySelector('.toggle-circle');
+  const savedTheme=localStorage.getItem('theme');
+  const prefersLight=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;
+  function applyTheme(t){document.body.classList.toggle('light',t==='light');document.body.classList.toggle('dark',t==='dark');circle.textContent=(t==='light')?'☀':'☾';localStorage.setItem('theme',t);} 
+  applyTheme(savedTheme?savedTheme:(prefersLight?'light':'dark'));
+  themeToggle.addEventListener('click',()=>{if(document.body.classList.contains('light')){applyTheme('dark');}else{applyTheme('light');}});
+
+  const flavours = {
+    Tea: ['Masala', 'Lemon', 'Ginger', 'Green', 'Kahwa'],
+    Coffee: ['Hot', 'Cold', 'Black', 'Filter', 'Iced'],
+    Water: ['Normal', 'Warm', 'Cold']
+  };
+
+  let selectedBeverage = '';
+  let selectedFlavour = '';
+
+  function selectBeverage(beverage) {
+    selectedBeverage = beverage;
+    const flavourDiv = document.getElementById('flavours');
+    flavourDiv.innerHTML = '';
+    flavours[beverage].forEach(flavour => {
+      const button = document.createElement('button');
+      button.textContent = flavour;
+      button.className = 'flavour-button';
+      button.onclick = () => selectFlavour(flavour);
+      flavourDiv.appendChild(button);
+    });
+    document.getElementById('flavour-section').style.display = 'block';
+    document.getElementById('order-details').style.display = 'none';
+  }
+
+  function selectFlavour(flavour) {
+    selectedFlavour = flavour;
+    const orderSummary = document.getElementById('order-summary');
+    orderSummary.innerHTML = `<i>${selectedFlavour} ${selectedBeverage}</i>`;
+    document.getElementById('order-details').style.display = 'block';
+  }
+
+  function sendToWhatsApp() {
+    const order = document.getElementById('order-summary').textContent;
+    orderText = `Please bring a/an ${order}.`;
+    const whatsappNumber = '9821380921';
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderText)}`;
+    window.open(whatsappURL, '_blank');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EPOPEE Apps</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    /* --- THEME TOKENS --- */
+    :root { 
+      --bg: #0b0e13; 
+      --card: #121722; 
+      --text: #e7ecf3; 
+      --muted: #9fb0c3; 
+      --accent: #6ee7ff; 
+      --btn1a: #1f2a44; 
+      --btn1b: #152039; 
+      --bad: #ff6b6b; 
+      --shadow: 0 10px 25px rgba(0,0,0,0.3); 
+      --stroke: rgba(255,255,255,.08);
+    }
+    body.light { 
+      --bg: #f6f8fb; 
+      --card: #ffffff; 
+      --text: #0f172a; 
+      --muted: #5b6b7c; 
+      --accent: #0ea5e9; 
+      --btn1a: #e8eef7; 
+      --btn1b: #dde6f3; 
+      --bad: #ef4444; 
+      --shadow: 0 12px 30px rgba(15, 23, 42, .12); 
+      --stroke: rgba(2,6,23,.08);
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 0;
+      transition: background 0.3s ease, color 0.2s ease;
+    }
+    .container {
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    h1 {
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease;
+      height: 80%;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+    .card p {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    /* --- Styles for Admin Button --- */
+    .admin-button-container {
+      grid-column: 1 / -1; /* Make container span all columns */
+      margin-top: 10px;
+    }
+    #adminBtn {
+      appearance: none;
+      background: linear-gradient(180deg, var(--btn1a), var(--btn1b));
+      color: var(--accent);
+      border: 1px solid var(--stroke);
+      padding: 12px 25px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 16px;
+      transition: filter 0.2s ease;
+    }
+    #adminBtn:hover {
+      filter: brightness(1.15);
+    }
+    /* --- Styles for Modal --- */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: var(--card);
+      margin: auto;
+      padding: 25px 30px;
+      border: 1px solid var(--stroke);
+      width: 95%;
+      max-width: 380px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+      text-align: center;
+    }
+    .close-button {
+      color: var(--muted);
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-content h2 {
+        margin-top: 0;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+    }
+    .modal-content button {
+        appearance: none;
+        background: linear-gradient(180deg, var(--btn1a), var(--btn1b));
+        color: var(--accent);
+        border: 1px solid var(--stroke);
+        padding: 12px 0;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        font-size: 16px;
+        transition: filter 0.2s ease;
+        width: 20%;
+        min-width: 70px;
+        display: block;
+        margin: 15px auto 0;
+    }
+    .modal-content button:hover {
+      filter: brightness(1.15);
+    }
+    #errorMessage {
+        color: var(--bad);
+        font-size: 14px;
+        margin-top: 15px;
+        min-height: 20px;
+    }
+    /* --- Styles for Password Reveal Button --- */
+    .password-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .password-wrapper input {
+      margin: 0; /* Override default margin */
+      padding-right: 45px; /* Add space for the eye icon */
+    }
+    #togglePasswordBtn {
+      position: absolute;
+      right: 1px;
+      top: 1px;
+      bottom: 1px;
+      width: 45px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px; /* Adjusted for Font Awesome icon size */
+      border-radius: 0 12px 12px 0;
+      color: var(--muted);
+      /* Reset styles inherited from .modal-content button */
+      padding: 0;
+      min-width: auto;
+      margin: 0;
+      display: inline-block;
+    }
+     #togglePasswordBtn:hover {
+      filter: none;
+    }
+    /* --- Styles for Theme Toggle --- */
+    .theme-toggle { 
+        position: absolute;
+        top: 5px;
+        right: 0;
+        width:60px; 
+        height:38px; 
+        border-radius:30px; 
+        background:#e6e9ef; 
+        box-shadow:inset 4px 4px 8px #c2c5cc, inset -4px -4px 8px #fff; 
+        cursor:pointer; 
+        transition:background .3s ease; 
+        overflow:hidden; 
+    }
+    body.dark .theme-toggle { 
+        background:#2c3140; 
+        box-shadow:inset 4px 4px 8px #212531, inset -4px -4px 8px #383f4f; 
+    }
+    .toggle-circle { 
+        position:absolute; 
+        top:4px; 
+        left:4px; 
+        width:30px; 
+        height:30px; 
+        border-radius:50%; 
+        background:#fff; 
+        display:flex; 
+        align-items:center; 
+        justify-content:center; 
+        font-size:25px; 
+        color:#f39c12; 
+        box-shadow:2px 2px 5px rgba(0,0,0,0.2); 
+        transition:all .3s ease; 
+        z-index:2; 
+    }
+    body.dark .toggle-circle { 
+        transform:translateX(22px); 
+        background:#3a3f51; 
+        color:#f1f1f1; 
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="theme-toggle" id="themeToggle">
+        <div class="toggle-circle">☀</div>
+    </div>
+    <h1>EPOPEE Jewels Apps</h1>
+    <div class="grid">
+      <a href="Beverage Ordering Kiosk.html">
+        <div class="card">
+          <h2>Beverage<br>Ordering<br>Kiosk</h2>
+          <p>Select beverages for Customers (when you ask) and send order via WhatsApp.</p>
+        </div>
+      </a>
+      <a href="ID Decoders with Discount Calc & Currency Converter.html">
+        <div class="card">
+          <h2>ID Decoders with Discount Calculator & Currency Converter</h2>
+          <p>Decode Product & Price IDs with Discounts. Convert INR price into multiple currencies.</p>
+        </div>
+      </a>
+      <div class="admin-button-container" id="adminBtnContainer">
+        <button id="adminBtn">ADMIN Apps</button>
+      </div>
+      <a href="Product & Price ID Coder and Decoder.html" id="adminLink" style="display: none; grid-column: 1 / -1;">
+        <div class="card">
+          <h2>Product & Price ID<br>Coder & Decoder</h2>
+          <p>Admin tool to Generate as well as Decode Product and Price IDs.</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div id="adminModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Admin Login</h2>
+      <p style="color: var(--muted); font-size: 14px;">Enter password to access Admin apps.</p>
+      <div class="password-wrapper">
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button type="button" id="togglePasswordBtn"><i class="fas fa-eye"></i></button>
+      </div>
+      <button id="loginBtn">Login</button>
+      <p id="errorMessage">&nbsp;</p>
+    </div>
+  </div>
+
+<script>
+  // --- THEME TOGGLE LOGIC ---
+  const themeToggle = document.getElementById('themeToggle');
+  const circle = themeToggle.querySelector('.toggle-circle');
+  const savedTheme = localStorage.getItem('theme');
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  
+  function applyTheme(t) {
+      document.body.classList.toggle('light', t === 'light');
+      document.body.classList.toggle('dark', t === 'dark');
+      circle.textContent = (t === 'light') ? '☀' : '☾';
+      localStorage.setItem('theme', t);
+  }
+  
+  applyTheme(savedTheme ? savedTheme : (prefersLight ? 'light' : 'dark'));
+  
+  themeToggle.addEventListener('click', () => {
+      if (document.body.classList.contains('light')) {
+          applyTheme('dark');
+      } else {
+          applyTheme('light');
+      }
+  });
+
+  // --- ADMIN MODAL LOGIC ---
+  const adminBtn = document.getElementById('adminBtn');
+  const adminModal = document.getElementById('adminModal');
+  const closeModal = document.querySelector('.close-button');
+  const loginBtn = document.getElementById('loginBtn');
+  const passwordInput = document.getElementById('passwordInput');
+  const adminLink = document.getElementById('adminLink');
+  const adminBtnContainer = document.getElementById('adminBtnContainer');
+  const errorMessage = document.getElementById('errorMessage');
+  const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+  
+  const correctPassword = "EPOPEE2017";
+
+  // 3. JavaScript Logic Updated
+  togglePasswordBtn.addEventListener('click', function() {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    // Toggle the icon
+    const icon = this.querySelector('i');
+    icon.classList.toggle('fa-eye');
+    icon.classList.toggle('fa-eye-slash');
+  });
+
+  // Show modal on button click
+  adminBtn.onclick = function() {
+    adminModal.style.display = "flex";
+    passwordInput.focus();
+  }
+
+  // Hide modal on 'X' click
+  closeModal.onclick = function() {
+    adminModal.style.display = "none";
+    errorMessage.innerHTML = "&nbsp;";
+    passwordInput.value = "";
+  }
+
+  // Hide modal on outside click
+  window.onclick = function(event) {
+    if (event.target == adminModal) {
+      adminModal.style.display = "none";
+      errorMessage.innerHTML = "&nbsp;";
+      passwordInput.value = "";
+    }
+  }
+
+  // Handle login logic
+  loginBtn.onclick = function() {
+    if (passwordInput.value === correctPassword) {
+      // Correct password
+      adminModal.style.display = "none";
+      adminLink.style.display = "block";
+      adminBtnContainer.style.display = "none";
+      passwordInput.value = "";
+      errorMessage.innerHTML = "&nbsp;";
+    } else {
+      // Incorrect password
+      errorMessage.textContent = "Incorrect Password. Please try again.";
+      passwordInput.value = "";
+      passwordInput.focus();
+    }
+  }
+
+  // Allow pressing Enter to submit
+  passwordInput.addEventListener("keyup", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      loginBtn.click();
+    }
+  });
+</script>
+</body>
+</html>
