@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product and Price ID Coder/Decoder</title>
+  <style>
+    /* THEME TOKENS */
+    :root { --bg:#0b0e13; --card:#121722; --text:#e7ecf3; --muted:#9fb0c3; --accent:#6ee7ff; --ok:#7ef1a0; --warn:#ffcc66; --bad:#ff6b6b; --btn1a:#1f2a44; --btn1b:#152039; --red1:#ff4d4d; --red2:#cc0000; --red1h:#ff6666; --red2h:#e60000; --shadow:0 20px 60px rgba(0,0,0,.35); --stroke:rgba(255,255,255,.08); --pillbg:rgba(255,255,255,.03); --pillstroke:rgba(255,255,255,.12); --bg-grad1:#1a2233; --bg-grad2:#0b0e13; }
+    body.light { --bg:#f6f8fb; --card:#ffffff; --text:#0f172a; --muted:#5b6b7c; --accent:#0ea5e9; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --btn1a:#e8eef7; --btn1b:#dde6f3; --red1:#ef5350; --red2:#c62828; --red1h:#ff6f6b; --red2h:#d32f2f; --shadow:0 12px 30px rgba(15, 23, 42, .12); --stroke:rgba(2,6,23,.08); --pillbg:rgba(2,6,23,.04); --pillstroke:rgba(2,6,23,.08); --bg-grad1:#f0f4f8; --bg-grad2:#e6edf5; }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:radial-gradient(1200px 600px at 80% -10%, var(--bg-grad1) 0, var(--bg-grad2) 50%), var(--bg); color:var(--text); display:grid; place-items:center; transition:background .3s ease, color .2s ease; padding: 20px;}
+    
+    .main-wrapper { display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; justify-content:center; width:min(900px,95vw); }
+    .container{ background:var(--card); border:1px solid var(--stroke); border-radius:20px; padding:15px; box-shadow:var(--shadow) }
+    .left-container { flex:1 1 400px; }
+    .right-column { flex:1 1 400px; display:flex; flex-direction:column; gap:24px; }
+    h1{text-align:center; font-size:clamp(20px,2.6vw,28px); margin:16px 0;}
+    label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
+    input, select{width:100%; background:transparent; border:1px solid var(--stroke); border-radius:12px; padding:12px; outline:none; color:var(--text); font-size:16px; margin-bottom:10px}
+    select option {background:var(--card); color:var(--text);}
+    button{appearance:none; border:none; padding:12px 18px; border-radius:12px; font-weight:700; cursor:pointer; border:1px solid rgba(0,0,0,.08)}
+    .btn-main{background:linear-gradient(180deg, var(--btn1a), var(--btn1b)); color:var(--accent); width:100%; margin-top:8px}
+    .btn-main:hover{filter:brightness(1.1)}
+    .btn-refresh{background:linear-gradient(180deg, var(--red1), var(--red2)); color:#fff; width:103px}
+    .btn-refresh:hover{background:linear-gradient(180deg, var(--red1h), var(--red2h));}
+    .output{margin-top:5px; padding:10px; background:var(--pillbg); border:1px solid var(--pillstroke); border-radius:12px; font-size:14px; min-height:40px; word-wrap:break-word;}
+    hr{border:none; border-top:1px solid var(--stroke); margin:8px 0}
+    .bottom-controls{display:flex; align-items:center; justify-content:center; gap:20px;}
+    .theme-toggle{position:relative; display:inline-block; width:60px; height:38px; border-radius:30px; background:#e6e9ef; box-shadow:inset 4px 4px 8px #c2c5cc, inset -4px -4px 8px #fff; cursor:pointer; transition:background .3s ease; overflow:hidden;}
+    body.dark .theme-toggle{background:#2c3140; box-shadow:inset 4px 4px 8px #212531, inset -4px -4px 8px #383f4f;}
+    .toggle-circle{position:absolute; top:4px; left:4px; width:30px; height:30px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; color:#f39c12; box-shadow:2px 2px 5px rgba(0,0,0,0.2); transition:all .3s ease; z-index:2;}
+    body.dark .toggle-circle{transform:translateX(22px); background:#3a3f51; color:#f1f1f1;}
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <div class="container left-container">
+      <h1>Product ID Coder & Decoder</h1>
+      <form id="productEncoderForm">
+        <label for="product">Product:</label>
+        <select id="product" required>
+          <option value="">Select Product</option>
+          <option value="R">Ring</option>
+          <option value="E">Earring</option>
+          <option value="B">Bangle</option>
+          <option value="N">Necklace</option>
+          <option value="T">Tops</option>
+          <option value="C">Cuffling</option>
+          <option value="L">Bracelet</option>
+          <option value="P">Pendent</option>
+          <option value="H">Brooch</option>
+          <option value="W">Crown</option>
+        </select>
+        <label for="sln">Serial Number:</label>
+        <input type="number" id="sln" placeholder="Enter SL No." required>
+        <label for="origin">Source:</label>
+        <select id="origin" required>
+          <option value="">Select Origin</option>
+          <option value="M">Manufactured</option>
+          <option value="P">Purchased</option>
+          <option value="A">Alteration</option>
+        </select>
+        <button type="button" class="btn-main" onclick="generateProductCode()">GENERATE CODE</button>
+      </form>
+      <div id="productEncodeResult" class="output"></div>
+      <hr>
+      <form id="productDecoderForm">
+        <label for="productCodeInput">Product Code:</label>
+        <input type="text" id="productCodeInput" placeholder="Enter Product Code" style="text-transform: uppercase;" required>
+        <p style="font-size:0.75em;color:var(--muted)">*The product code must start with 'E' for decoding accurately.</p>
+        <button type="button" class="btn-main" onclick="decodeProductCode()">DECODE</button>
+      </form>
+      <div id="productDecodeResult" class="output"></div>
+    </div>
+    <div class="right-column">
+      <div class="container">
+        <h1>Price ID Coder & Decoder</h1>
+        <form id="priceEncoderForm">
+          <label for="price">Price (₹):</label>
+          <input type="number" id="price" placeholder="Enter Price" required>
+          <button type="button" class="btn-main" onclick="encodePriceCode()">ENCODE PRICE</button>
+        </form>
+        <div id="priceEncodeResult" class="output"></div>
+        <hr>
+        <form id="priceDecoderForm">
+          <label for="priceCodeInput">Price Code:</label>
+          <input type="text" id="priceCodeInput" placeholder="Enter Price Code" style="text-transform: uppercase;" required>
+          <button type="button" class="btn-main" onclick="decodePriceCode()">DECODE PRICE</button>
+        </form>
+        <div id="priceDecodeResult" class="output"></div>
+      </div>
+      <br>
+      <div class="bottom-controls">
+        <div class="theme-toggle" id="themeToggle">
+          <div class="toggle-circle">☀</div>
+        </div>
+        <button class="btn-refresh" onclick="location.reload()">Refresh &#x21BB </button>
+      </div>
+    </div>
+  </div>
+<script>
+  const themeToggle=document.getElementById('themeToggle');
+  const circle=themeToggle.querySelector('.toggle-circle');
+  const savedTheme=localStorage.getItem('theme');
+  const prefersLight=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;
+  function applyTheme(t){document.body.classList.toggle('light',t==='light');document.body.classList.toggle('dark',t==='dark');circle.textContent=(t==='light')?'☀':'☾';localStorage.setItem('theme',t);} 
+  applyTheme(savedTheme?savedTheme:(prefersLight?'light':'dark'));
+  themeToggle.addEventListener('click',()=>{if(document.body.classList.contains('light')){applyTheme('dark');}else{applyTheme('light');}});
+
+  function generateProductCode(){
+      const product=document.getElementById('product').value;
+      const sln=parseInt(document.getElementById('sln').value);
+      const origin=document.getElementById('origin').value;
+
+      if(!product){alert('Please select a product.');return;}
+      if(isNaN(sln)){alert('Please enter a valid Serial Number.');return;}
+      if(!['M','P','A'].includes(origin)){alert('Please select valid Origin.');return;}
+
+      const date=new Date();
+      const day=date.getDate().toString().padStart(2,'0');
+      const monthCodes=['A','B','C','D','E','F','G','H','I','J','K','L']; 
+      const yearCodes=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']; 
+
+      const currentMonthCode=monthCodes[date.getMonth()];
+      const currentYearCode=yearCodes[date.getFullYear()-2025];
+
+      const productCode=`E${product}${day}${currentMonthCode}${currentYearCode}${sln}${origin}`;
+
+      const resultDiv=document.getElementById('productEncodeResult');
+      resultDiv.style.display='block';
+      resultDiv.innerHTML=`<strong>Product Code:</strong> ${productCode}`;
+  }
+
+  function decodeProductCode(){
+      const code=document.getElementById('productCodeInput').value.trim().toUpperCase();
+      if(!code||code.length<7||!code.startsWith('E')){alert('Invalid code. Must start with E.');return;}
+
+      const productCodes={'R':'Ring','E':'Earring','B':'Bangle','N':'Necklace','T':'Tops','C':'Cuffling','L':'Bracelet','P':'Pendent','H':'Brooch','W':'Crown'};
+      const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const yearCodes=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+      const originMap={'M':'Manufactured','P':'Purchased','A':'Alteration'};
+
+      const product=productCodes[code[1]]||'Unknown';
+      const day=code.slice(2,4);
+      const month=monthNames[code.charCodeAt(4)-'A'.charCodeAt(0)]||'Unknown';
+      const year=2025+yearCodes.indexOf(code[5]);
+      const rest=code.slice(6);
+      const originLetter=rest.match(/[MPA]$/)?rest.slice(-1):'?';
+      const serial=rest.slice(0,-1);
+
+      const decodeResultDiv=document.getElementById('productDecodeResult');
+      decodeResultDiv.style.display='block';
+      decodeResultDiv.innerHTML=`
+          <strong>Product:</strong> ${product}<br>
+          <strong>Date:</strong> ${day} ${month} ${year}<br>
+          <strong>Serial Number:</strong> ${serial}<br>
+          <strong>Source:</strong> ${originMap[originLetter]||'Unknown'}
+      `;
+  }
+
+  const encodingMap={1:'B',2:'R',3:'I',4:'J',5:'M',6:'O',7:'H',8:'A',9:'N',0:'X'};
+  const decodingMap=Object.fromEntries(Object.entries(encodingMap).map(([k,v])=>[v,k]));
+
+  function encodingPrice(price){let encodedPrice=price;for(const [k,v] of Object.entries(encodingMap)){encodedPrice=encodedPrice.replace(new RegExp(k,'g'),v);}return encodedPrice;}
+  function decodingPrice(code){let decodedPrice=code;for(const [k,v] of Object.entries(decodingMap)){decodedPrice=decodedPrice.replace(new RegExp(k,'g'),v);}return decodedPrice;}
+
+  function encodePriceCode(){
+    const price=document.getElementById('price').value;
+    if(!price||price<=0){alert('Please enter a valid price.');return;}
+    const priceQuotient=Math.floor(price/1000).toString();
+    const encodePrice=encodingPrice(priceQuotient);
+    const priceCode=`${encodePrice}`;
+    document.getElementById('priceEncodeResult').innerHTML=`<strong>Price Code:</strong> ${priceCode}`;
+  }
+
+  function decodePriceCode(){
+    let priceCode=document.getElementById('priceCodeInput').value.trim().toUpperCase();
+    if(!priceCode||!/^[A-Z]+$/.test(priceCode)||![...priceCode].every(char=>Object.keys(decodingMap).includes(char))){
+      alert('Please enter a valid price code.');return;
+    }
+    const priceDecode=decodingPrice(priceCode);
+    const approxPrice=(parseInt(priceDecode)*1000)+1000;
+    document.getElementById('priceDecodeResult').innerHTML=`<strong>APPROXIMATE Price:</strong> ₹ ${approxPrice.toLocaleString('en-IN')}`;
+  }
+</script>
+</body>
+</html>
